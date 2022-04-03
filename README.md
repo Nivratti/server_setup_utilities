@@ -27,7 +27,7 @@ Install tweak tools: to fix folder icon not showing issue in Ubuntu 18 on e2enet
 
 ```console
 $ sudo add-apt-repository universe
-sudo apt install gnome-tweak-tool
+$ sudo apt install gnome-tweak-tool
 ```
 
 Run tweak tools and change **appearance** setting to **humanity**.

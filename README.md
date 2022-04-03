@@ -44,3 +44,11 @@ ii. Append cuda library path
    export PATH="/usr/local/cuda-11.3/bin:$PATH"
    export LD_LIBRARY_PATH="/usr/local/cuda-11.3/lib64:$LD_LIBRARY_PATH"
    ```
+   
+## 4. Installing Miniconda and Python
+
+To install miniconda and Python, run below command. You can change base python version if required.
+
+```
+CONDA_AUTO_UPDATE_CONDA=false && PATH=~/miniconda/bin:$PATH && curl -sLo ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-py38_4.8.2-Linux-x86_64.sh && chmod +x ~/miniconda.sh && ~/miniconda.sh -b -p ~/miniconda && rm ~/miniconda.sh && conda install -y python==3.8.1
+```

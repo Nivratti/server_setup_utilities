@@ -38,7 +38,7 @@ $ gnome-tweaks
 
 ## 3. Fixing cuda toolkit `nvcc --version` not visible issue:
 
-i. Open bashrc fileby running command `/etc/bash.bashrc`
+i. Open bashrc fileby running command `$ /etc/bash.bashrc`
 ii. Append cuda library path
    ```
    export PATH="/usr/local/cuda-11.3/bin:$PATH"

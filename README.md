@@ -31,4 +31,6 @@ $ sudo apt install gnome-tweak-tool
 
 Run tweak tools and change **appearance** setting to **humanity**.
 
-`$ gnome-tweaks`
+```
+$ gnome-tweaks
+```

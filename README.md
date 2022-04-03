@@ -35,3 +35,12 @@ Run tweak tools and change **appearance** setting to **humanity**.
 ```console
 $ gnome-tweaks
 ```
+
+## 3. Fixing cuda toolkit `nvcc --version` not visible issue:
+
+i. Open bashrc fileby running command `/etc/bash.bashrc`
+ii. Append cuda library path
+   ```
+   export PATH="/usr/local/cuda-11.3/bin:$PATH"
+   export LD_LIBRARY_PATH="/usr/local/cuda-11.3/lib64:$LD_LIBRARY_PATH"
+   ```

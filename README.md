@@ -6,7 +6,7 @@ Utitlities- script and doc -- to setup xrdp, cuda libraries or other development
 1. A
 ## Usage
 
-### 1. Setting up xrdp:
+### - Setting up xrdp:
 
 1. Downlaod `setup_xrdp.bash` on server and allow execution permission.
    ```
@@ -20,7 +20,7 @@ Utitlities- script and doc -- to setup xrdp, cuda libraries or other development
 3. **IMP** Change password of user. 
 
 
-## 2. Setup Tweak tool:
+## - Setup Tweak tool:
 
 Install tweak tools: to fix folder icon not showing issue in Ubuntu 18 on e2enetwork server. [Azhar repo link](https://github.com/azroddin123/Setup_Learn/blob/master/Ubuntu%20Issues.)
 

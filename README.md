@@ -67,7 +67,7 @@ source ~/.bashrc
 conda info
 ```
 
-## 5. Installing gogole Chrome
+## 5. Installing google Chrome
 
 To install chrome, run below commands.
 

@@ -10,6 +10,7 @@ Utitlities- script and doc -- to setup xrdp, cuda libraries or other development
 
 1. Downlaod `setup_xrdp.bash` on server and allow execution permission.
    ```
+   $ wget https://raw.githubusercontent.com/Nivratti/server_setup_utilities/main/setup_xrdp.bash
    $ sudo chmod +x setup_xrdp.bash
    ```
    

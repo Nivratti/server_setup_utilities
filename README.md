@@ -27,14 +27,14 @@ Utitlities- script and doc -- to setup xrdp, cuda libraries or other development
 Install tweak tools: to fix folder icon not showing issue in Ubuntu 18 on e2enetwork server. [Azhar repo link](https://github.com/azroddin123/Setup_Learn/blob/master/Ubuntu%20Issues.)
 
 ```console
-$ sudo add-apt-repository universe
-$ sudo apt install gnome-tweak-tool
+sudo add-apt-repository universe
+sudo apt install gnome-tweak-tool
 ```
 
 Run tweak tools and change **appearance** setting to **humanity**.
 
 ```console
-$ gnome-tweaks
+gnome-tweaks
 ```
 
 ## 3. Fixing cuda toolkit `nvcc --version` not visible issue:

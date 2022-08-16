@@ -72,7 +72,7 @@ conda info
 To install chrome, run below commands.
 
 ```console
-sudo apt-get install fonts-liberation
+sudo apt-get install -y fonts-liberation
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo dpkg -i google-chrome-stable_current_amd64.deb
 ```

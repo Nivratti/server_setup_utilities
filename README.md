@@ -41,7 +41,7 @@ gnome-tweaks
 
 i. Open bashrc fileby running command `$ /etc/bash.bashrc`
 ii. Append cuda library path
-   ```
+   ```console
    export PATH="/usr/local/cuda-11.3/bin:$PATH"
    export LD_LIBRARY_PATH="/usr/local/cuda-11.3/lib64:$LD_LIBRARY_PATH"
    ```
@@ -50,7 +50,7 @@ ii. Append cuda library path
 
 To install miniconda and Python, run below command. You can change base python version if required.
 
-```
+```console
 CONDA_AUTO_UPDATE_CONDA=false && PATH=~/miniconda/bin:$PATH && curl -sLo ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-py38_4.8.2-Linux-x86_64.sh && chmod +x ~/miniconda.sh && ~/miniconda.sh -b -p ~/miniconda && rm ~/miniconda.sh && conda install -y python==3.8.1
 ```
 
@@ -58,7 +58,7 @@ CONDA_AUTO_UPDATE_CONDA=false && PATH=~/miniconda/bin:$PATH && curl -sLo ~/minic
 
 To install conda, run commands.
 
-```
+```console
 sudo apt-get update
 wget https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
 sudo chmod +x Anaconda3-2020.02-Linux-x86_64.sh
@@ -71,7 +71,7 @@ conda info
 
 To install chrome, run below commands.
 
-```
+```console
 sudo apt-get install fonts-liberation
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo dpkg -i google-chrome-stable_current_amd64.deb

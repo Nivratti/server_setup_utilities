@@ -69,7 +69,7 @@ conda info
 
 ## 5. Installing google Chrome
 
-To install chrome, run below commands.
+To install chrome, run below commands from user account instead of root.
 
 ```console
 sudo apt-get install -y fonts-liberation

@@ -79,7 +79,17 @@ sudo dpkg -i google-chrome-stable_current_amd64.deb
 
 ## 6. Docker compose
 
-Docker compose mannual instaaltion on ubuntu 18 e2enetwork cloud server.
+1) Option to enable docker compose
+Ubuntu 18:
+
+sudo apt install apt-transport-https ca-certificates curl software-properties-common
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu `lsb_release -cs` test"
+sudo apt update
+sudo apt install docker-ce
+
+2) Old way -- dash inside command i.e. docker-compose
+Docker compose mannual installation on ubuntu 18 e2enetwork cloud server.
 
 ```
 mkdir -p /usr/local/lib/docker/cli-plugins

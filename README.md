@@ -106,3 +106,19 @@ sudo curl -SL https://github.com/docker/compose/releases/download/v2.7.0/docker-
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 ```
+
+## 7. Opening port on server:
+
+On ubuntu system you can run command:
+
+```
+sudo iptables -A INPUT -p tcp --dport xxxxx -j ACCEPT
+```
+
+Example to open 8010 port you can run:
+
+```
+sudo iptables -A INPUT -p tcp --dport 8010 -j ACCEPT
+```
+
+

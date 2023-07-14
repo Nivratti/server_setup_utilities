@@ -62,9 +62,9 @@ To install conda, run commands.
 
 ```console
 sudo apt-get update
-wget https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
-sudo chmod +x Anaconda3-2020.02-Linux-x86_64.sh
-./Anaconda3-2020.02-Linux-x86_64.sh
+wget https://repo.anaconda.com/archive/Anaconda3-2023.07-1-Linux-x86_64.sh
+sudo chmod +x Anaconda3-2023.07-1-Linux-x86_64.sh
+./Anaconda3-2023.07-1-Linux-x86_64.shh
 source ~/.bashrc
 conda info
 ```

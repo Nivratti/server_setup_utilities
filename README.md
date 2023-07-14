@@ -42,8 +42,8 @@ gnome-tweaks
 i. Open bashrc fileby running command `$ sudo nano /etc/bash.bashrc`
 ii. Append cuda library path
    ```console
-   export PATH="/usr/local/cuda-11.3/bin:$PATH"
-   export LD_LIBRARY_PATH="/usr/local/cuda-11.3/lib64:$LD_LIBRARY_PATH"
+   export PATH="/usr/local/cuda-11.8/bin:$PATH"
+   export LD_LIBRARY_PATH="/usr/local/cuda-11.8/lib64:$LD_LIBRARY_PATH"
    ```
 iii) Reload bashrc by running `source /etc/bash.bashrc` 
 iv) Run `nvcc --version` command

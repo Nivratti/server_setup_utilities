@@ -52,6 +52,19 @@ iv) Run `nvcc --version` command
 
 To install miniconda and Python, run below command. You can change base python version if required.
 
+```
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+sudo chmod +x Miniconda3-latest-Linux-x86_64.sh
+./Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3
+echo  'export PATH=$PATH:/opt/miniconda3/bin' >> ~/.bashrc 
+source ~/.bashrc
+conda init bash
+source ~/.bashrc
+conda
+```
+
+or if you want to install miniconda in user home directory, you can run below command
+
 ```console
 CONDA_AUTO_UPDATE_CONDA=false && PATH=~/miniconda/bin:$PATH && curl -sLo ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-py38_4.8.2-Linux-x86_64.sh && chmod +x ~/miniconda.sh && ~/miniconda.sh -b -p ~/miniconda && rm ~/miniconda.sh && conda install -y python==3.8.1
 ```

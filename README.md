@@ -1,9 +1,21 @@
 # Server setup utilities
 Utitlities- script and doc -- to setup xrdp, cuda libraries or other development tools on server
 
-## Recent updates:
+# Table of Contents
 
-1. A
+- [Server setup utilities](#server-setup-utilities)
+  - [Recent updates](#recent-updates)
+- [Usage](#usage)
+  - [1. Add sudo user on Ubuntu](#1-add-sudo-user-on-ubuntu)
+  - [2. Installing Miniconda and Python](#2-installing-miniconda-and-python)
+  - [3. Installing Anaconda](#3-installing-anaconda)
+  - [4. Docker compose](#4-docker-compose)
+  - [5. Fixing cuda toolkit `nvcc --version` not visible issue](#5-fixing-cuda-toolkit-nvcc---version-not-visible-issue)
+  - [6. Opening port on server](#6-opening-port-on-server)
+  - [7. Setting up xrdp](#7-setting-up-xrdp)
+  - [8. Setup Tweak tool](#8-setup-tweak-tool)
+  - [9. Installing Google Chrome](#9-installing-google-chrome)
+    
 ## Usage
 
 ### 1. Add sudo user on Ubuntu:
@@ -26,6 +38,7 @@ Replace newuser with the username that you entered previously.
 To install miniconda and Python, run below command. You can change base python version if required.
 
 ```console
+# Download the Miniconda installer script from the Anaconda repository
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 sudo chmod +x Miniconda3-latest-Linux-x86_64.sh
 ./Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3

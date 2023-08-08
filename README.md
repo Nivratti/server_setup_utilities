@@ -6,49 +6,22 @@ Utitlities- script and doc -- to setup xrdp, cuda libraries or other development
 1. A
 ## Usage
 
-### 1. Setting up xrdp:
+### 1. Add sudo user on Ubuntu:
 
-1. Downlaod `setup_xrdp.bash` on server and allow execution permission.
-   ```console
-   wget https://raw.githubusercontent.com/Nivratti/server_setup_utilities/main/setup_xrdp.bash
-   sudo chmod +x setup_xrdp.bash
-   ```
-   
-2. Setup xrdp by running command.
-   ```console
-   ./setup_xrdp.bash
-   ```
-   
-3. **IMP** Change password of user. 
-
-
-## 2. Setup Tweak tool:
-
-Install tweak tools: to fix folder icon not showing issue in Ubuntu 18 on e2enetwork server. [Azhar repo link](https://github.com/azroddin123/Setup_Learn/blob/master/Ubuntu%20Issues.)
+The adduser command creates a new user, plus a group and home directory for that user.
 
 ```console
-sudo add-apt-repository universe
-sudo apt install gnome-tweak-tool
+sudo adduser newuser
 ```
+You can replace newuser with any username you wish. The system will add the new user; then prompt you to enter a password. Enter a great secure password, then retype it to confirm.
 
-Run tweak tools and change **appearance** setting to **humanity**.
-
+To add user to sudo group, you can run command:
 ```console
-gnome-tweaks
+sudo usermod -aG sudo newuser
 ```
+Replace newuser with the username that you entered previously.
 
-## 3. Fixing cuda toolkit `nvcc --version` not visible issue:
-
-i. Open bashrc fileby running command `$ sudo nano /etc/bash.bashrc`
-ii. Append cuda library path
-   ```console
-   export PATH="/usr/local/cuda-11.8/bin:$PATH"
-   export LD_LIBRARY_PATH="/usr/local/cuda-11.8/lib64:$LD_LIBRARY_PATH"
-   ```
-iii) Reload bashrc by running `source /etc/bash.bashrc` 
-iv) Run `nvcc --version` command
-   
-## 4. Installing Miniconda and Python
+### 2. Installing Miniconda and Python
 
 To install miniconda and Python, run below command. You can change base python version if required.
 
@@ -69,7 +42,7 @@ or if you want to install miniconda in user home directory, you can run below co
 CONDA_AUTO_UPDATE_CONDA=false && PATH=~/miniconda/bin:$PATH && curl -sLo ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-py38_4.8.2-Linux-x86_64.sh && chmod +x ~/miniconda.sh && ~/miniconda.sh -b -p ~/miniconda && rm ~/miniconda.sh && conda install -y python==3.8.1
 ```
 
-## 5. Installing Anaconda
+### 3. Installing Anaconda
 
 To install conda, run commands.
 
@@ -82,17 +55,7 @@ source ~/.bashrc
 conda info
 ```
 
-## 5. Installing google Chrome
-
-To install chrome, run below commands from **user account instead of root**.
-
-```console
-sudo apt-get install -y fonts-liberation
-wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-sudo dpkg -i google-chrome-stable_current_amd64.deb
-```
-
-## 6. Docker compose
+### 4. Docker compose
 
 1) Option to enable docker compose
 Ubuntu 18:
@@ -113,25 +76,74 @@ docker compose
 2) Old way -- dash inside command i.e. docker-compose
 Docker compose mannual installation on ubuntu 18 e2enetwork cloud server.
 
-```
+```console
 mkdir -p /usr/local/lib/docker/cli-plugins
 sudo curl -SL https://github.com/docker/compose/releases/download/v2.7.0/docker-compose-linux-x86_64 -o  /usr/local/bin/docker-compose
 sudo chmod +x /usr/local/bin/docker-compose
 docker-compose --version
 ```
 
-## 7. Opening port on server:
+### 5. Fixing cuda toolkit `nvcc --version` not visible issue:
+
+i. Open bashrc fileby running command `$ sudo nano /etc/bash.bashrc`
+ii. Append cuda library path
+   ```console
+   export PATH="/usr/local/cuda-11.8/bin:$PATH"
+   export LD_LIBRARY_PATH="/usr/local/cuda-11.8/lib64:$LD_LIBRARY_PATH"
+   ```
+iii) Reload bashrc by running `source /etc/bash.bashrc` 
+iv) Run `nvcc --version` command
+
+### 6. Opening port on server:
 
 On ubuntu system you can run command:
 
-```
+```console
 sudo iptables -A INPUT -p tcp --dport xxxxx -j ACCEPT
 ```
 
 Example to open 8010 port you can run:
 
-```
+```console
 sudo iptables -A INPUT -p tcp --dport 8010 -j ACCEPT
 ```
 
+### 7. Setting up xrdp:
 
+1. Downlaod `setup_xrdp.bash` on server and allow execution permission.
+   ```console
+   wget https://raw.githubusercontent.com/Nivratti/server_setup_utilities/main/setup_xrdp.bash
+   sudo chmod +x setup_xrdp.bash
+   ```
+   
+2. Setup xrdp by running command.
+   ```console
+   ./setup_xrdp.bash
+   ```
+   
+3. **IMP** Change password of user. 
+
+### 8. Setup Tweak tool:
+
+Install tweak tools: to fix folder icon not showing issue in Ubuntu 18 on e2enetwork server. [Azhar repo link](https://github.com/azroddin123/Setup_Learn/blob/master/Ubuntu%20Issues.)
+
+```console
+sudo add-apt-repository universe
+sudo apt install gnome-tweak-tool
+```
+
+Run tweak tools and change **appearance** setting to **humanity**.
+
+```console
+gnome-tweaks
+```
+
+### 8. Installing google Chrome
+
+To install chrome, run below commands from **user account instead of root**.
+
+```console
+sudo apt-get install -y fonts-liberation
+wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+sudo dpkg -i google-chrome-stable_current_amd64.deb
+```

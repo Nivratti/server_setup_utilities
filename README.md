@@ -97,12 +97,15 @@ docker-compose --version
 ### 5. Fixing cuda toolkit `nvcc --version` not visible issue:
 
 i. Open bashrc fileby running command `$ sudo nano /etc/bash.bashrc`
+
 ii. Append cuda library path
    ```console
    export PATH="/usr/local/cuda-11.8/bin:$PATH"
    export LD_LIBRARY_PATH="/usr/local/cuda-11.8/lib64:$LD_LIBRARY_PATH"
    ```
+
 iii. Reload bashrc by running `source /etc/bash.bashrc` 
+
 iv. Run `nvcc --version` command
 
 ### 6. Opening port on server:

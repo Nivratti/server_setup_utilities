@@ -149,7 +149,7 @@ Run tweak tools and change **appearance** setting to **humanity**.
 gnome-tweaks
 ```
 
-### 8. Installing google Chrome
+### 9. Installing google Chrome
 
 To install chrome, run below commands from **user account instead of root**.
 

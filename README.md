@@ -3,8 +3,6 @@ Utitlities- script and doc -- to setup xrdp, cuda libraries or other development
 
 # Table of Contents
 
-- [Server setup utilities](#server-setup-utilities)
-  - [Recent updates](#recent-updates)
 - [Usage](#usage)
   - [1. Add sudo user on Ubuntu](#1-add-sudo-user-on-ubuntu)
   - [2. Installing Miniconda and Python](#2-installing-miniconda-and-python)

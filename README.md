@@ -52,7 +52,7 @@ iv) Run `nvcc --version` command
 
 To install miniconda and Python, run below command. You can change base python version if required.
 
-```
+```console
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
 sudo chmod +x Miniconda3-latest-Linux-x86_64.sh
 ./Miniconda3-latest-Linux-x86_64.sh -b -p /opt/miniconda3

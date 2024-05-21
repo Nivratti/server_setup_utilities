@@ -126,16 +126,14 @@ sudo iptables -A INPUT -p tcp --dport 8010 -j ACCEPT
 
 1. Downlaod `setup_xrdp.bash` on server and allow execution permission.
    ```console
-   wget https://raw.githubusercontent.com/Nivratti/server_setup_utilities/main/setup_xrdp.bash
-   sudo chmod +x setup_xrdp.bash
+   wget https://raw.githubusercontent.com/Nivratti/server_setup_utilities/main/setup_remote_desktop.sh
+   sudo chmod +x setup_remote_desktop.sh
    ```
    
 2. Setup xrdp by running command.
    ```console
-   ./setup_xrdp.bash
+   ./setup_remote_desktop.sh
    ```
-   
-3. **IMP** Change password of user. 
 
 ### 8. Setup Tweak tool:
 

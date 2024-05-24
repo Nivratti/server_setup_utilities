@@ -137,11 +137,11 @@ sudo iptables -A INPUT -p tcp --dport 8010 -j ACCEPT
 
 ### 8. Setup Tweak tool:
 
-Install tweak tools: to fix folder icon not showing issue in Ubuntu 18 on e2enetwork server. [Azhar repo link](https://github.com/azroddin123/Setup_Learn/blob/master/Ubuntu%20Issues.)
+Install tweak tools: to fix folder icon not showing issue in Ubuntu 18 on e2enetwork server.
 
 ```console
 sudo add-apt-repository universe
-sudo apt install gnome-tweak-tool
+sudo apt install gnome-tweaks
 ```
 
 Run tweak tools and change **appearance** setting to **humanity**.

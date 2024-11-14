@@ -39,5 +39,11 @@ setup_remote_desktop() {
 }
 
 # Main script execution
-create_sudo_user
+read -p "Do you want to create a new sudo user? (y/n): " create_user_choice
+if [[ "$create_user_choice" =~ ^[Yy]$ ]]; then
+    create_sudo_user
+else
+    echo "Skipping user creation."
+fi
+
 setup_remote_desktop

@@ -50,7 +50,7 @@ conda
 or if you want to install miniconda in user home directory, you can run below command
 
 ```console
-CONDA_AUTO_UPDATE_CONDA=false && PATH=~/miniconda/bin:$PATH && curl -sLo ~/miniconda.sh https://repo.continuum.io/miniconda/Miniconda3-py38_4.8.2-Linux-x86_64.sh && chmod +x ~/miniconda.sh && ~/miniconda.sh -b -p ~/miniconda && rm ~/miniconda.sh && conda install -y python==3.8.1
+CONDA_AUTO_UPDATE_CONDA=false && curl -sLo ~/miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh && chmod +x ~/miniconda.sh && ./miniconda.sh -b -p ~/miniconda && rm ~/miniconda.sh && echo 'export PATH=~/miniconda/bin:$PATH' >> ~/.bashrc && source ~/.bashrc && conda install -y python=3.12
 ```
 
 ### 3. Installing Anaconda

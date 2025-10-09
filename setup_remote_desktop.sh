@@ -145,54 +145,62 @@ setup_remote_desktop() {
 }
 
 set_india_timezone_locale() {
-    # Timezone first
-    if [ "$(timedatectl show -p Timezone --value 2>/dev/null)" != "Asia/Kolkata" ]; then
-        sudo apt-get update -y
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata
+    # During setup, use a guaranteed locale to avoid bash warnings
+    export LC_ALL=C.UTF-8 LANG=C.UTF-8
+
+    # Timezone
+    if command -v timedatectl >/dev/null 2>&1; then
+        sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata locales
         sudo timedatectl set-timezone Asia/Kolkata
+    else
+        sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
+        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata locales
+        sudo ln -sf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
     fi
 
-    # Locales tooling
-    sudo apt-get update -y
-    sudo apt-get install -y locales
-
-    # 1) Sanitize /etc/locale.gen (remove broken lines and ensure the correct one exists)
-    #    Valid line must be exactly: "en_IN.UTF-8 UTF-8"
-    sudo sed -ri '/^\s*en_IN(\.UTF-8)?\s*$/d' /etc/locale.gen            # remove malformed "en_IN.UTF-8" w/o charset
-    if grep -Eq '^\s*#?\s*en_IN\.UTF-8\s+UTF-8\s*$' /etc/locale.gen; then
-        sudo sed -ri 's/^\s*#\s*(en_IN\.UTF-8\s+UTF-8)\s*$/\1/' /etc/locale.gen
-    else
+    # Ensure correct line in /etc/locale.gen (no malformed entries)
+    sudo sed -ri '/^\s*en_IN(\.UTF-8)?\s*$/d' /etc/locale.gen
+    if ! grep -Eq '^\s*en_IN\.UTF-8\s+UTF-8\s*$' /etc/locale.gen; then
         echo 'en_IN.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
     fi
-
-    # (Optionally keep a common fallback)
-    if ! grep -Eq '^\s*en_US\.UTF-8\s+UTF-8\s*$' /etc/locale.gen; then
-        echo 'en_US.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
+    # Keep a safe fallback around
+    if ! grep -Eq '^\s*C\.UTF-8\s+UTF-8\s*$' /etc/locale.gen; then
+        echo 'C.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
     fi
 
-    # 2) Generate locales explicitly
-    sudo locale-gen en_IN.UTF-8 en_US.UTF-8
+    # Generate locales explicitly
+    sudo locale-gen en_IN.UTF-8 C.UTF-8
 
-    # 3) Set the system default locale via systemd-localed when available
+    # Set system default locale (do NOT set LC_ALL)
     if command -v localectl >/dev/null 2>&1; then
-        sudo localectl set-locale LANG=en_IN.UTF-8
+        sudo localectl set-locale LANG=en_IN.UTF-8 LANGUAGE="en_IN:en"
     else
-        sudo update-locale LANG=en_IN.UTF-8
+        sudo update-locale LANG=en_IN.UTF-8 LANGUAGE="en_IN:en"
     fi
 
-    # 4) For this current shell/session (useful immediately; services get it after restart/login)
-    export LANG=en_IN.UTF-8
-    export LC_ALL=en_IN.UTF-8
+    # Make sure /etc/default/locale has no LC_ALL line
+    if [ -f /etc/default/locale ]; then
+        if grep -q '^LC_ALL=' /etc/default/locale; then
+            sudo sed -ri '/^LC_ALL=/d' /etc/default/locale
+        fi
+    fi
 
-    # 5) Quick verification
+    # For the current shell/session: let LANG drive categories; don't force LC_ALL
+    unset LC_ALL
+    export LANG=en_IN.UTF-8
+    export LANGUAGE=en_IN:en
+
+    # Verify presence (Ubuntu 25 usually lists en_IN.utf8)
     if ! locale -a | grep -qiE '^en_IN(\.utf8|\.UTF-8)$'; then
-        echo "WARNING: en_IN.UTF-8 not visible in locale -a; consider installing 'locales-all' (large) as a last resort:"
+        echo "WARNING: en_IN.UTF-8 not visible in 'locale -a'. As a last resort:"
         echo "  sudo apt-get install -y locales-all"
     fi
 
     echo "Locale now set. Summary:"
-    locale | egrep '^(LANG|LC_[A-Z]+)='
+    locale | egrep '^(LANG|LANGUAGE|LC_[A-Z]+)='
 }
+
 
 setup_new_user_account
 setup_remote_desktop

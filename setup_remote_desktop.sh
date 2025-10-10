@@ -77,7 +77,8 @@ setup_remote_desktop() {
     fi
 
     echo "Updating system..."
-    sudo apt update && sudo apt -y upgrade
+    # sudo apt update && sudo apt -y upgrade
+    sudo apt update
 
     # Desktop selection
     if [[ "$os" == "debian" ]]; then
@@ -85,7 +86,7 @@ setup_remote_desktop() {
         de_choice="X"
     else
         while true; do
-            read -r -p "Which desktop environment do you want to install? [G]NOME / [X]FCE4 (default: G): " de_choice
+            read -r -p "Which desktop environment do you want to install? [G]NOME / [X]FCE4 (default: X): " de_choice
             de_choice=${de_choice:-G}
             if [[ "$de_choice" =~ ^[GgXx]$ ]]; then break; fi
             echo "Invalid input. Please enter G for GNOME or X for XFCE4."

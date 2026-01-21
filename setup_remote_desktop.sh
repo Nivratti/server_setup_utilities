@@ -1,9 +1,35 @@
+#!/bin/bash
+set -e
+
+# Helper: run command with sudo if not root, directly if root
+run_privileged() {
+    if [[ $EUID -eq 0 ]]; then
+        "$@"
+    else
+        sudo "$@"
+    fi
+}
+
+# Install sudo if missing (must be root for this)
+ensure_sudo_installed() {
+    if ! command -v sudo >/dev/null 2>&1; then
+        if [[ $EUID -ne 0 ]]; then
+            echo "ERROR: 'sudo' is not installed and you're not root."
+            echo "Please run this script as root, or install sudo first:"
+            echo "  su -c 'apt update && apt install -y sudo'"
+            exit 1
+        fi
+        echo "Installing sudo (required for user management)..."
+        apt update && apt install -y sudo
+    fi
+}
+
 ensure_xsession_for_user() {
-  local u="$1"
-  local home
-  home="$(getent passwd "$u" | cut -d: -f6)"
-  sudo install -m 0644 /dev/stdin "$home/.xsession" <<<"startxfce4"
-  sudo chown "$u:$u" "$home/.xsession"
+    local u="$1"
+    local home
+    home="$(getent passwd "$u" | cut -d: -f6)"
+    run_privileged install -m 0644 /dev/stdin "$home/.xsession" <<<"startxfce4"
+    run_privileged chown "$u:$u" "$home/.xsession"
 }
 
 setup_new_user_account() {
@@ -36,15 +62,15 @@ setup_new_user_account() {
         fi
     done
 
-    # Ensure sudo exists on Debian minimal
+    # Ensure sudo group exists (it should after sudo is installed)
     if ! getent group sudo >/dev/null 2>&1; then
-        sudo apt update && sudo apt install -y sudo
+        run_privileged groupadd sudo
     fi
 
-    sudo adduser --quiet --disabled-password --gecos "" "$username"
-    echo "$username:$password" | sudo chpasswd
+    run_privileged adduser --quiet --disabled-password --gecos "" "$username"
+    echo "$username:$password" | run_privileged chpasswd
 
-    # export the created username so the other function can see it
+    # Export the created username so the other function can see it
     export NEW_USERNAME="$username"
 
     while true; do
@@ -58,7 +84,7 @@ setup_new_user_account() {
     done
 
     if [[ "$add_sudo" =~ ^[Yy]$ ]]; then
-        sudo usermod -aG sudo "$username"
+        run_privileged usermod -aG sudo "$username"
         echo "User '$username' created and added to sudo group."
     else
         echo "User '$username' created without sudo privileges."
@@ -77,8 +103,7 @@ setup_remote_desktop() {
     fi
 
     echo "Updating system..."
-    # sudo apt update && sudo apt -y upgrade
-    sudo apt update
+    run_privileged apt update
 
     # Desktop selection
     if [[ "$os" == "debian" ]]; then
@@ -87,7 +112,7 @@ setup_remote_desktop() {
     else
         while true; do
             read -r -p "Which desktop environment do you want to install? [G]NOME / [X]FCE4 (default: X): " de_choice
-            de_choice=${de_choice:-G}
+            de_choice=${de_choice:-X}
             if [[ "$de_choice" =~ ^[GgXx]$ ]]; then break; fi
             echo "Invalid input. Please enter G for GNOME or X for XFCE4."
         done
@@ -96,26 +121,26 @@ setup_remote_desktop() {
     # Install desktop + XRDP + Xorg backend
     if [[ "$de_choice" =~ ^[Xx]$ ]]; then
         echo "Installing XFCE4 desktop..."
-        sudo apt install -y xfce4 xfce4-goodies xorg dbus-x11 x11-xserver-utils xrdp xorgxrdp
+        run_privileged apt install -y xfce4 xfce4-goodies xorg dbus-x11 x11-xserver-utils xrdp xorgxrdp
     else
         echo "Installing GNOME desktop..."
         # ubuntu-desktop-minimal keeps it lighter; include xorgxrdp explicitly
-        sudo apt install -y ubuntu-desktop-minimal xrdp xorgxrdp
+        run_privileged apt install -y ubuntu-desktop-minimal xrdp xorgxrdp
         # Disable Wayland so XRDP uses Xorg (GNOME on Ubuntu)
         if [[ -f /etc/gdm3/custom.conf ]]; then
             if ! grep -q "^WaylandEnable=false" /etc/gdm3/custom.conf; then
-                sudo sed -i 's/^#\?WaylandEnable=.*/WaylandEnable=false/' /etc/gdm3/custom.conf
+                run_privileged sed -i 's/^#\?WaylandEnable=.*/WaylandEnable=false/' /etc/gdm3/custom.conf
             fi
-            sudo systemctl restart gdm3 || true
+            run_privileged systemctl restart gdm3 || true
         fi
     fi
 
     # Let xrdp read its TLS cert
-    sudo adduser xrdp ssl-cert >/dev/null 2>&1 || true
+    run_privileged adduser xrdp ssl-cert >/dev/null 2>&1 || true
 
     # For XFCE, ensure a session starts (both for root and the new user later)
     if [[ "$de_choice" =~ ^[Xx]$ ]]; then
-        echo "startxfce4" | sudo tee /etc/skel/.xsession >/dev/null
+        echo "startxfce4" | run_privileged tee /etc/skel/.xsession >/dev/null
 
         # Also ensure current user can test immediately
         if [[ ! -f "$HOME/.xsession" ]]; then
@@ -129,12 +154,12 @@ setup_remote_desktop() {
     fi
 
     echo "Configuring XRDP service..."
-    sudo systemctl enable xrdp --now
-    sudo systemctl restart xrdp
+    run_privileged systemctl enable xrdp --now
+    run_privileged systemctl restart xrdp
 
     # Open local firewall if present
     if command -v ufw >/dev/null 2>&1; then
-        sudo ufw allow 3389/tcp
+        run_privileged ufw allow 3389/tcp
         echo "Port 3389 opened in UFW."
     else
         echo "UFW not installed. Skipping UFW config."
@@ -149,60 +174,93 @@ set_india_timezone_locale() {
     # During setup, use a guaranteed locale to avoid bash warnings
     export LC_ALL=C.UTF-8 LANG=C.UTF-8
 
+    echo "Installing timezone and locale packages..."
+    run_privileged apt-get update -y
+    run_privileged apt-get install -y tzdata locales
+
     # Timezone
     if command -v timedatectl >/dev/null 2>&1; then
-        sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata locales
-        sudo timedatectl set-timezone Asia/Kolkata
+        run_privileged timedatectl set-timezone Asia/Kolkata
     else
-        sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
-        sudo DEBIAN_FRONTEND=noninteractive apt-get install -y tzdata locales
-        sudo ln -sf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
+        run_privileged ln -sf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
+        echo "Asia/Kolkata" | run_privileged tee /etc/timezone >/dev/null
+        run_privileged dpkg-reconfigure -f noninteractive tzdata
     fi
 
     # Ensure correct line in /etc/locale.gen (no malformed entries)
-    sudo sed -ri '/^\s*en_IN(\.UTF-8)?\s*$/d' /etc/locale.gen
-    if ! grep -Eq '^\s*en_IN\.UTF-8\s+UTF-8\s*$' /etc/locale.gen; then
-        echo 'en_IN.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
+    run_privileged sed -ri '/^\s*en_IN(\.UTF-8)?\s*$/d' /etc/locale.gen
+
+    # Uncomment en_IN.UTF-8 if it exists as a comment, or add it
+    if grep -Eq '^#\s*en_IN\.UTF-8\s+UTF-8' /etc/locale.gen; then
+        run_privileged sed -ri 's/^#\s*(en_IN\.UTF-8\s+UTF-8)/\1/' /etc/locale.gen
+    elif ! grep -Eq '^\s*en_IN\.UTF-8\s+UTF-8' /etc/locale.gen; then
+        echo 'en_IN.UTF-8 UTF-8' | run_privileged tee -a /etc/locale.gen >/dev/null
     fi
+
     # Keep a safe fallback around
-    if ! grep -Eq '^\s*C\.UTF-8\s+UTF-8\s*$' /etc/locale.gen; then
-        echo 'C.UTF-8 UTF-8' | sudo tee -a /etc/locale.gen >/dev/null
+    if grep -Eq '^#\s*C\.UTF-8\s+UTF-8' /etc/locale.gen; then
+        run_privileged sed -ri 's/^#\s*(C\.UTF-8\s+UTF-8)/\1/' /etc/locale.gen
+    elif ! grep -Eq '^\s*C\.UTF-8\s+UTF-8' /etc/locale.gen; then
+        echo 'C.UTF-8 UTF-8' | run_privileged tee -a /etc/locale.gen >/dev/null
     fi
 
-    # Generate locales explicitly
-    sudo locale-gen en_IN.UTF-8 C.UTF-8
+    # Generate locales
+    echo "Generating locales..."
+    run_privileged locale-gen
 
-    # Set system default locale (do NOT set LC_ALL)
+    # Set system default locale
     if command -v localectl >/dev/null 2>&1; then
-        sudo localectl set-locale LANG=en_IN.UTF-8 LANGUAGE="en_IN:en"
+        run_privileged localectl set-locale LANG=en_IN.UTF-8 LANGUAGE="en_IN:en"
     else
-        sudo update-locale LANG=en_IN.UTF-8 LANGUAGE="en_IN:en"
+        run_privileged update-locale LANG=en_IN.UTF-8 LANGUAGE="en_IN:en"
     fi
 
-    # Make sure /etc/default/locale has no LC_ALL line
-    if [ -f /etc/default/locale ]; then
+    # Make sure /etc/default/locale has no LC_ALL line (it causes issues)
+    if [[ -f /etc/default/locale ]]; then
         if grep -q '^LC_ALL=' /etc/default/locale; then
-            sudo sed -ri '/^LC_ALL=/d' /etc/default/locale
+            run_privileged sed -ri '/^LC_ALL=/d' /etc/default/locale
         fi
     fi
 
-    # For the current shell/session: let LANG drive categories; don't force LC_ALL
+    # For the current shell/session
     unset LC_ALL
     export LANG=en_IN.UTF-8
     export LANGUAGE=en_IN:en
 
-    # Verify presence (Ubuntu 25 usually lists en_IN.utf8)
-    if ! locale -a | grep -qiE '^en_IN(\.utf8|\.UTF-8)$'; then
-        echo "WARNING: en_IN.UTF-8 not visible in 'locale -a'. As a last resort:"
-        echo "  sudo apt-get install -y locales-all"
-    fi
-
-    echo "Locale now set. Summary:"
-    locale | egrep '^(LANG|LANGUAGE|LC_[A-Z]+)='
+    # Verify
+    echo ""
+    echo "Locale configuration complete. Current settings:"
+    locale 2>/dev/null || echo "(locale command unavailable)"
+    echo ""
+    echo "Timezone: $(cat /etc/timezone 2>/dev/null || timedatectl show -p Timezone --value 2>/dev/null || echo 'unknown')"
 }
 
+# ============== MAIN ==============
+echo "========================================"
+echo "  Remote Desktop Setup Script"
+echo "  Supports: Ubuntu 24+ / Debian 12+"
+echo "========================================"
+echo ""
 
+# Step 0: Ensure sudo is available
+ensure_sudo_installed
+
+# Step 1: Create user (optional)
 setup_new_user_account
+
+# Step 2: Install desktop + XRDP
 setup_remote_desktop
+
+# Step 3: Set timezone and locale
 set_india_timezone_locale
+
+echo ""
+echo "========================================"
+echo "  Setup Complete!"
+echo "========================================"
+echo ""
+echo "You can now connect via RDP on port 3389."
+if [[ -n "$NEW_USERNAME" ]]; then
+    echo "Login with user: $NEW_USERNAME"
+fi
+echo ""

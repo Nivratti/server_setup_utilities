@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
 # Helper: run command with sudo if not root, directly if root
 run_privileged() {
@@ -48,7 +48,19 @@ setup_new_user_account() {
         return
     fi
 
-    read -r -p "Enter username for the new user: " username
+    # Get and validate username
+    while true; do
+        read -r -p "Enter username for the new user: " username
+        if [[ -z "$username" ]]; then
+            echo "Username cannot be empty."
+        elif [[ ! "$username" =~ ^[a-z_][a-z0-9_-]*$ ]]; then
+            echo "Invalid username. Use lowercase letters, numbers, underscore, hyphen (must start with letter or underscore)."
+        elif id "$username" &>/dev/null; then
+            echo "User '$username' already exists. Please choose a different username."
+        else
+            break
+        fi
+    done
 
     while true; do
         read -s -r -p "Enter password for the new user: " password; echo
@@ -68,7 +80,12 @@ setup_new_user_account() {
     fi
 
     run_privileged adduser --quiet --disabled-password --gecos "" "$username"
-    echo "$username:$password" | run_privileged chpasswd
+    
+    # Set password securely (avoid exposing in process list)
+    run_privileged chpasswd <<<"$username:$password"
+    
+    # Clear password from memory
+    unset password confirm_password
 
     # Export the created username so the other function can see it
     export NEW_USERNAME="$username"
@@ -103,7 +120,7 @@ setup_remote_desktop() {
     fi
 
     echo "Updating system..."
-    run_privileged apt update
+    run_privileged apt-get update
 
     # Desktop selection
     if [[ "$os" == "debian" ]]; then
@@ -121,11 +138,10 @@ setup_remote_desktop() {
     # Install desktop + XRDP + Xorg backend
     if [[ "$de_choice" =~ ^[Xx]$ ]]; then
         echo "Installing XFCE4 desktop..."
-        run_privileged apt install -y xfce4 xfce4-goodies xorg dbus-x11 x11-xserver-utils xrdp xorgxrdp
+        run_privileged apt-get install -y xfce4 xfce4-goodies xorg dbus-x11 x11-xserver-utils xrdp xorgxrdp
     else
         echo "Installing GNOME desktop..."
-        # ubuntu-desktop-minimal keeps it lighter; include xorgxrdp explicitly
-        run_privileged apt install -y ubuntu-desktop-minimal xrdp xorgxrdp
+        run_privileged apt-get install -y ubuntu-desktop-minimal xrdp xorgxrdp
         # Disable Wayland so XRDP uses Xorg (GNOME on Ubuntu)
         if [[ -f /etc/gdm3/custom.conf ]]; then
             if ! grep -q "^WaylandEnable=false" /etc/gdm3/custom.conf; then
@@ -135,10 +151,10 @@ setup_remote_desktop() {
         fi
     fi
 
-    # Let xrdp read its TLS cert
-    run_privileged adduser xrdp ssl-cert >/dev/null 2>&1 || true
+    # Let xrdp read its TLS cert (may fail if ssl-cert group doesn't exist, that's ok)
+    run_privileged adduser xrdp ssl-cert 2>/dev/null || true
 
-    # For XFCE, ensure a session starts (both for root and the new user later)
+    # For XFCE, ensure a session starts
     if [[ "$de_choice" =~ ^[Xx]$ ]]; then
         echo "startxfce4" | run_privileged tee /etc/skel/.xsession >/dev/null
 
@@ -148,7 +164,7 @@ setup_remote_desktop() {
         fi
 
         # If a new user was created earlier in this run, fix theirs too
-        if [[ -n "$NEW_USERNAME" ]]; then
+        if [[ -n "${NEW_USERNAME:-}" ]]; then
             ensure_xsession_for_user "$NEW_USERNAME"
         fi
     fi
@@ -166,7 +182,6 @@ setup_remote_desktop() {
     fi
 
     echo "NOTE: If you're on a cloud VM, also open TCP/3389 in your cloud security group / firewall."
-
     echo "✅ Remote desktop setup completed. Connect via RDP to port 3389."
 }
 
@@ -175,15 +190,19 @@ set_india_timezone_locale() {
     export LC_ALL=C.UTF-8 LANG=C.UTF-8
 
     echo "Installing timezone and locale packages..."
-    run_privileged apt-get update -y
+    # tzdata and locales might already be installed, that's fine
     run_privileged apt-get install -y tzdata locales
 
-    # Timezone
+    # Set timezone (ALWAYS do this, even if timedatectl exists)
+    # First set the config files, then reconfigure
+    echo "Asia/Kolkata" | run_privileged tee /etc/timezone >/dev/null
+    run_privileged ln -sf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
+    
+    # Use timedatectl if available (preferred on systemd systems)
     if command -v timedatectl >/dev/null 2>&1; then
         run_privileged timedatectl set-timezone Asia/Kolkata
     else
-        run_privileged ln -sf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
-        echo "Asia/Kolkata" | run_privileged tee /etc/timezone >/dev/null
+        # Fallback: reconfigure tzdata
         run_privileged dpkg-reconfigure -f noninteractive tzdata
     fi
 
@@ -232,7 +251,11 @@ set_india_timezone_locale() {
     echo "Locale configuration complete. Current settings:"
     locale 2>/dev/null || echo "(locale command unavailable)"
     echo ""
-    echo "Timezone: $(cat /etc/timezone 2>/dev/null || timedatectl show -p Timezone --value 2>/dev/null || echo 'unknown')"
+    
+    # Show timezone (try multiple methods)
+    local tz
+    tz=$(timedatectl show -p Timezone --value 2>/dev/null || cat /etc/timezone 2>/dev/null || echo 'unknown')
+    echo "Timezone: $tz"
 }
 
 # ============== MAIN ==============
@@ -260,7 +283,7 @@ echo "  Setup Complete!"
 echo "========================================"
 echo ""
 echo "You can now connect via RDP on port 3389."
-if [[ -n "$NEW_USERNAME" ]]; then
+if [[ -n "${NEW_USERNAME:-}" ]]; then
     echo "Login with user: $NEW_USERNAME"
 fi
 echo ""

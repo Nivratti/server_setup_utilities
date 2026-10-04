@@ -1,7 +1,7 @@
 # Server setup utilities
-Utitlities- script and doc -- to setup xrdp, cuda libraries or other development tools on server
+Scripts and documentation for setting up remote desktop, Conda, CUDA, SSH, and other development tools on a server.
 
-# Table of Contents
+## Table of contents
 
 - [Usage](#usage)
   - [1. Add sudo user on Ubuntu](#1-add-sudo-user-on-ubuntu)
@@ -13,6 +13,12 @@ Utitlities- script and doc -- to setup xrdp, cuda libraries or other development
   - [7. Setting up xrdp](#7-setting-up-xrdp)
   - [8. Setup Tweak tool](#8-setup-tweak-tool)
   - [9. Installing Google Chrome](#9-installing-google-chrome)
+  - [10. Google Cloud SSH keys and VS Code Remote SSH](#10-google-cloud-ssh-keys-and-vs-code-remote-ssh)
+    - [Generate an SSH key on Windows](#generate-an-ssh-key-on-windows)
+    - [Register the public key in Google Cloud](#register-the-public-key-in-google-cloud)
+    - [Test the SSH connection](#test-the-ssh-connection)
+    - [Connect with VS Code](#connect-with-vs-code)
+    - [Troubleshooting](#troubleshooting)
     
 ## Usage
 
@@ -159,3 +165,105 @@ sudo apt-get install -y fonts-liberation
 wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
 sudo dpkg -i google-chrome-stable_current_amd64.deb
 ```
+
+
+### 10. Google Cloud SSH keys and VS Code Remote SSH
+
+Use this setup to access files and run code on a Google Cloud Debian VM from VS Code on Windows. Remote desktop and SSH are separate services; the remote desktop password does not necessarily enable SSH password authentication.
+
+The metadata-based SSH key setup below was successfully tested in this workflow. Replace `niv` with your VM login username and `VM_EXTERNAL_IP` with the VM's external IP address. Keep your existing working access open while testing the new connection.
+
+#### Generate an SSH key on Windows
+
+Run these commands in **PowerShell on your Windows computer**, not on the VM:
+
+```powershell
+New-Item -ItemType Directory -Force -Path "$env:USERPROFILE\.ssh" | Out-Null
+ssh-keygen -t ed25519 -f "$env:USERPROFILE\.ssh\gcp_server" -C "niv"
+```
+
+Choose a passphrase when prompted. If that filename already exists, use a different filename rather than overwriting your working key.
+
+Two files are created:
+
+- `gcp_server`: private key; keep it on your Windows computer and never share it.
+- `gcp_server.pub`: public key; add this to Google Cloud.
+
+Display and copy the complete public-key line:
+
+```powershell
+Get-Content "$env:USERPROFILE\.ssh\gcp_server.pub"
+```
+
+#### Register the public key in Google Cloud
+
+For a VM using **metadata-based SSH keys**:
+
+1. Open **Google Cloud Console → Compute Engine → VM instances**.
+2. Select the VM and click **Edit**.
+3. Find **SSH keys** and click **Add item**.
+4. Paste the entire public-key line and save. Preserve existing key entries.
+5. Use the username shown for that key when connecting. With the example key comment above, use `niv`.
+
+**If OS Login is enabled**, metadata SSH keys are not the applicable method. Register the public key with your Google account through OS Login instead. From a locally authenticated Google Cloud CLI, for example:
+
+```powershell
+gcloud compute os-login ssh-keys add --key-file="$env:USERPROFILE\.ssh\gcp_server.pub"
+gcloud compute os-login describe-profile
+```
+
+Use the POSIX username reported by OS Login, which can differ from your remote desktop username. Your account also needs the appropriate OS Login IAM permissions. Keep the existing OS Login configuration; do not disable it to work around a key error.
+
+#### Test the SSH connection
+
+In Windows PowerShell:
+
+```powershell
+ssh -i "$env:USERPROFILE\.ssh\gcp_server" -o IdentitiesOnly=yes niv@VM_EXTERNAL_IP
+```
+
+On the first connection, verify the server host-key fingerprint before accepting it. Enter the **key passphrase** if requested. Confirm that SSH opens a shell before configuring VS Code.
+
+This direct-IP example requires an external IP and SSH network access to the VM. If your VM uses IAP or another private access method, use that access method instead.
+
+#### Connect with VS Code
+
+1. Install Microsoft's **Remote - SSH** extension in VS Code on Windows.
+2. Press **Ctrl+Shift+P** and select **Remote-SSH: Open Configuration File**.
+3. Select your Windows user SSH config (`C:\Users\YOUR_WINDOWS_USERNAME\.ssh\config`).
+4. Add the following entry, replacing the IP and username:
+
+```sshconfig
+Host gcp-mumbai
+    HostName VM_EXTERNAL_IP
+    User niv
+    IdentityFile ~/.ssh/gcp_server
+    IdentitiesOnly yes
+```
+
+`IdentityFile` points to the **private key**, not the `.pub` file.
+
+5. Run **Remote-SSH: Connect to Host** and select **gcp-mumbai**.
+6. Choose **Linux** if prompted.
+7. Once connected, use **File → Open Folder** to open a VM folder, such as `/home/niv`.
+
+VS Code's terminal and file explorer now operate on the remote VM.
+
+#### Troubleshooting
+
+- **Server rejected public key / Permission denied (publickey):** check that the public key was added using the VM's configured access method, that `User` matches the metadata or OS Login username, and that `IdentityFile` points to the corresponding private key.
+- **Connection timeout:** check the VM is running, its external IP is correct, and the Google Cloud firewall permits TCP port 22 from your client IP. Avoid opening SSH to everyone just to troubleshoot.
+- **PowerShell SSH works but VS Code fails:** run **Remote-SSH: Show Log** and check which host, username, and key file VS Code is using.
+
+For detailed SSH diagnostics:
+
+```powershell
+ssh -vvv -i "$env:USERPROFILE\.ssh\gcp_server" -o IdentitiesOnly=yes niv@VM_EXTERNAL_IP
+```
+
+Share only relevant error lines when seeking help. Never share the private key or passphrase.
+
+Official documentation:
+
+- [Google Cloud: Add SSH keys to VMs](https://docs.cloud.google.com/compute/docs/connect/add-ssh-keys)
+- [VS Code: Remote Development using SSH](https://code.visualstudio.com/docs/remote/ssh)
